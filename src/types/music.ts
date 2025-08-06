@@ -4,6 +4,7 @@ export interface Track {
   artist: string;
   album: string;
   duration: number;
+  trackNumber?: number;
   file: File;
   url: string;
   coverArt?: string;
@@ -39,4 +40,13 @@ export interface MusicLibrary {
   recentlyPlayed: string[];
 }
 
-export type ViewType = 'home' | 'library' | 'liked' | 'settings' | 'playlist';
+export interface Album {
+  id: string;
+  name: string;
+  artist: string;
+  tracks: Track[];
+  coverArt?: string;
+  year?: number;
+}
+
+export type ViewType = 'home' | 'library' | 'liked' | 'settings' | 'playlist' | 'album';
