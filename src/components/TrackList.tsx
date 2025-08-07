@@ -36,7 +36,7 @@ export function TrackList({
     <div className="space-y-1">
       {/* Header */}
       <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-400 uppercase tracking-wider border-b border-gray-800">
-        <div className="col-span-1 text-center">#</div>
+        <div className="col-span-1 text-center">{showIndex ? '#' : 'Track'}</div>
         <div className="col-span-6">Title</div>
         <div className="col-span-3">Album</div>
         <div className="col-span-1 text-center">
@@ -75,7 +75,7 @@ export function TrackList({
               ) : (
                 <>
                   <span className="text-gray-400 group-hover:hidden text-sm">
-                    {showIndex ? index + 1 : ''}
+                    {showIndex ? index + 1 : (track.trackNumber || '')}
                   </span>
                   <Play className="w-4 h-4 text-white hidden group-hover:block" />
                 </>

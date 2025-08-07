@@ -6,13 +6,16 @@ import { LibraryView } from './components/views/LibraryView';
 import { LikedSongsView } from './components/views/LikedSongsView';
 import { SettingsView } from './components/views/SettingsView';
 import { PlaylistView } from './components/views/PlaylistView';
+import { AlbumView } from './components/views/AlbumView';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Track, Playlist, ViewType, MusicLibrary } from './types/music';
+import { Track, Playlist, ViewType, MusicLibrary, Album } from './types/music';
+import { groupTracksByAlbum } from './utils/albumUtils';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('');
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string>('');
   
   const [musicLibrary, setMusicLibrary] = useLocalStorage<MusicLibrary>('musicLibrary', {
     tracks: [],
@@ -37,7 +40,7 @@ function App() {
   const handleLoadTracks = useCallback((tracks: Track[]) => {
     setMusicLibrary(prev => ({
       ...prev,
-      tracks,
+      tracks: [...prev.tracks, ...tracks],
     }));
   }, [setMusicLibrary]);
 
@@ -101,6 +104,17 @@ function App() {
     setCurrentView('home');
   }, [setMusicLibrary]);
 
+  const handleAlbumSelect = useCallback((albumId: string) => {
+    setSelectedAlbumId(albumId);
+    setCurrentView('album');
+  }, []);
+
+  const handlePlayAlbum = useCallback((album: Album) => {
+    if (album.tracks.length > 0) {
+      handleTrackPlay(album.tracks[0], album.tracks, 0);
+    }
+  }, [handleTrackPlay]);
+
   const handleAddToPlaylist = useCallback((playlistId: string, trackId: string) => {
     setMusicLibrary(prev => ({
       ...prev,
@@ -123,11 +137,26 @@ function App() {
     }));
   }, [setMusicLibrary]);
 
+  const handleAddAlbumToPlaylist = useCallback((playlistId: string, album: Album) => {
+    const trackIds = album.tracks.map(track => track.id);
+    setMusicLibrary(prev => ({
+      ...prev,
+      playlists: prev.playlists.map(p => 
+        p.id === playlistId 
+          ? { ...p, tracks: [...p.tracks, ...trackIds], updatedAt: new Date() }
+          : p
+      ),
+    }));
+  }, [setMusicLibrary]);
+
   const recentTracks = musicLibrary.tracks.filter(track => 
     musicLibrary.recentlyPlayed.includes(track.id)
   );
 
   const selectedPlaylist = musicLibrary.playlists.find(p => p.id === selectedPlaylistId);
+
+  const albums = groupTracksByAlbum(musicLibrary.tracks);
+  const selectedAlbum = albums.find(album => album.id === selectedAlbumId);
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -153,6 +182,7 @@ function App() {
             onTogglePlayPause={togglePlayPause}
             likedSongs={musicLibrary.likedSongs}
             onToggleLike={handleToggleLike}
+            onAlbumSelect={handleAlbumSelect}
           />
         );
       case 'liked':
@@ -189,6 +219,25 @@ function App() {
             onDeletePlaylist={handleDeletePlaylist}
             onAddToPlaylist={handleAddToPlaylist}
             onRemoveFromPlaylist={handleRemoveFromPlaylist}
+          />
+        ) : (
+          <div className="p-6">
+            <p className="text-gray-400">Playlist not found</p>
+          </div>
+        );
+      case 'album':
+        return selectedAlbum ? (
+          <AlbumView
+            album={selectedAlbum}
+            currentTrack={playerState.currentTrack}
+            isPlaying={playerState.isPlaying}
+            onTrackPlay={handleTrackPlay}
+            onTogglePlayPause={togglePlayPause}
+            onPlayAlbum={handlePlayAlbum}
+            likedSongs={musicLibrary.likedSongs}
+            onToggleLike={handleToggleLike}
+            playlists={musicLibrary.playlists}
+            onAddAlbumToPlaylist={handleAddAlbumToPlaylist}
           />
         ) : (
           <div className="p-6">

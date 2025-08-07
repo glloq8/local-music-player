@@ -34,6 +34,7 @@ export function extractMetadataFromFile(file: File): Promise<Partial<Track>> {
             artist: tags.artist || 'Unknown Artist',
             album: tags.album || 'Unknown Album',
             duration: audio.duration || 0,
+            trackNumber: tags.track ? parseInt(tags.track.toString()) : undefined,
             coverArt: tags.picture ? createCoverArtUrl(tags.picture) : undefined,
           });
           
@@ -47,6 +48,7 @@ export function extractMetadataFromFile(file: File): Promise<Partial<Track>> {
             artist: tags.artist || 'Unknown Artist',
             album: tags.album || 'Unknown Album',
             duration: 0,
+            trackNumber: tags.track ? parseInt(tags.track.toString()) : undefined,
             coverArt: tags.picture ? createCoverArtUrl(tags.picture) : undefined,
           });
           URL.revokeObjectURL(url);
